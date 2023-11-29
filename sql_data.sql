@@ -39,6 +39,7 @@ def_temp as not materialized
         and a.arctype='definition' and l.rinok!='bfo'
 		where lower(l.parentrole) not similar to '%chasti%'
 	--and l.parentrole in ('http://www.cbr.ru/xbrl/nso/ins/rep/2024-11-01/tab/sr_0420155/P_20_1_UG_1','http://www.cbr.ru/xbrl/nso/ins/rep/2024-11-01/tab/sr_0420158_R4/1')
+	--and l.entity in ('sr_0420760_kbki-definition.xml','sr_0420760_bki_zayavl-definition.xml')
         order by arcrole
 ),
 def as

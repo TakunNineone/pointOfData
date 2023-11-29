@@ -10,12 +10,19 @@ class pointOfData():
     def print_d(self,text):
         print(f'{datetime.datetime.now()} - {text}')
 
-    def connect_to_bd(self,version="final_6_5_idx",user="postgres",password="124kosm21",host="127.0.0.1",port="5432"):
+    def connect_to_bd(self,version="final_6",user="postgres",password="124kosm21",host="127.0.0.1",port="5432"):
         self.connect = psycopg2.connect(user=user,
                                         password=password,
                                         host=host,
                                         port=port,
                                         database=version)
+
+    def find_common_eps(self,group):
+        eps = group['eps'].str.split(';')
+        common = set(eps.iloc[0])
+        for ep in eps:
+            common = common.intersection(set(ep))
+        return ';'.join(common) if common else 'нет совпадений ep'
 
     def nearest_first_product(self,*sequences):
         start = (0,) * len(sequences)
@@ -87,12 +94,17 @@ class pointOfData():
 
         df_res = pd.DataFrame({'parentrole_agg': df_res.groupby(['rinok','dims_n','concept'])['parentrole'].aggregate(lambda x: list(x)),
                                'entity_agg': df_res.groupby(['rinok', 'dims_n', 'concept'])['entity'].aggregate(lambda x: ';'.join(list(x))),
-                               'ep_agg': df_res.groupby(['rinok', 'dims_n', 'concept'])['eps'].aggregate(lambda x: ';'.join(list(x)))
+                               #'ep_agg': df_res.groupby(['rinok', 'dims_n', 'concept'])['eps'].aggregate(lambda x: ';'.join(list(x)))
+                              #'ep_agg': df_res.groupby(['rinok', 'dims_n', 'concept'])['eps'].agg(pd.Series.mode)
+                               # 'ep_agg': df_res.groupby(['rinok', 'dims_n', 'concept'])['eps'].aggregate(lambda x:pd.Series.mode(x)[0])
+                               'ep_agg': df_res.groupby(['rinok', 'dims_n', 'concept']).apply(self.find_common_eps)
                                }).reset_index()
 
         df_res['duble'] = [len(xx) for xx in df_res['parentrole_agg']]
         df_res['parentrole_agg']=[';'.join(xx) for xx in df_res['parentrole_agg']]
-        df_res['ep_agg'] = [ ';'.join(list(set(xx.split(';')))) for xx in df_res['ep_agg']]
+        # df_res['ep_agg'] = [ ';'.join(list(set(xx.split(';')))) for xx in df_res['ep_agg']]
+        df_res['entity_agg'] = [';'.join(list(set(xx.split(';')))) for xx in df_res['entity_agg']]
+        df_res['entity_cnt'] = [len(xx.split(';')) for xx in df_res['entity_agg']]
         df_res=df_res[df_res['duble']>1]
 
 
