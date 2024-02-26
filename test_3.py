@@ -10,7 +10,7 @@ class pointOfData():
     def print_d(self,text):
         print(f'{datetime.datetime.now()} - {text}')
 
-    def connect_to_bd(self,version="final_6_0",user="postgres",password="124kosm21",host="127.0.0.1",port="5432"):
+    def connect_to_bd(self,version="final_6_1",user="postgres",password="124kosm21",host="127.0.0.1",port="5432"):
         self.connect = psycopg2.connect(user=user,
                                         password=password,
                                         host=host,
@@ -110,8 +110,7 @@ class pointOfData():
 if __name__ == "__main__":
     ss=pointOfData()
     ss.connect_to_bd()
-    # for xx in ['ins']:
-    for xx in ['bki','brk','kra','nfo','npf','oper','srki','uk','sro','ins','purcb','bfo']:
+    for xx in ['oper']:
         with open('sql_data.sql','r') as f:
             sql=f.read()
         sql=sql.replace('HID',f"'{xx}'")

@@ -10,7 +10,7 @@ class pointOfData():
     def print_d(self,text):
         print(f'{datetime.datetime.now()} - {text}')
 
-    def connect_to_bd(self,version="final_6_0",user="postgres",password="124kosm21",host="127.0.0.1",port="5432"):
+    def connect_to_bd(self,version="final_6_1",user="postgres",password="124kosm21",host="127.0.0.1",port="5432"):
         self.connect = psycopg2.connect(user=user,
                                         password=password,
                                         host=host,
@@ -92,26 +92,30 @@ class pointOfData():
         df_res = pd.merge(df_res, data_df, on=['parentrole','rinok','entity'])
         print('\n'+'группирую')
 
-        df_res = pd.DataFrame({'parentrole_agg': df_res.groupby(['rinok','dims_n','concept'])['parentrole'].aggregate(lambda x: list(x)),
-                               'entity_agg': df_res.groupby(['rinok', 'dims_n', 'concept'])['entity'].aggregate(lambda x: ';'.join(list(x))),
-                               'ep_agg': df_res.groupby(['rinok', 'dims_n', 'concept']).apply(self.find_common_eps)
+        df_res=df_res.groupby(['rinok','dims_n','concept']).agg({'parentrole': lambda x: list(x)}).reset_index()
+        df_res['duble'] = [len(xx) for xx in df_res['parentrole']]
+        df_res = df_res[df_res['duble'] > 1]
+        # df_res=pd.DataFrame({'parentrole_agg': df_res.groupby(['rinok','dims_n','concept'])['parentrole'].aggregate(lambda x: list(x))})
+
+        df_res = pd.DataFrame({'entity_agg': df_res.groupby(['rinok', 'dims_n', 'concept'])['entity'].aggregate(lambda x: ';'.join(list(x)))
+                                  ,'ep_agg': df_res.groupby(['rinok', 'dims_n', 'concept']).apply(self.find_common_eps)
                                }).reset_index()
-        df_res['duble'] = [len(xx) for xx in df_res['parentrole_agg']]
-        df_res['parentrole_agg']=[';'.join(xx) for xx in df_res['parentrole_agg']]
-        # df_res['ep_agg'] = [ ';'.join(list(set(xx.split(';')))) for xx in df_res['ep_agg']]
-        df_res['entity_agg'] = [';'.join(list(set(xx.split(';')))) for xx in df_res['entity_agg']]
-        df_res['entity_cnt'] = [len(xx.split(';')) for xx in df_res['entity_agg']]
-        df_res=df_res[df_res['duble']>1]
+        print('закончил')
+        # df_res['duble'] = [len(xx) for xx in df_res['parentrole_agg']]
+        # df_res['parentrole_agg']=[';'.join(xx) for xx in df_res['parentrole_agg']]
+        # # df_res['ep_agg'] = [ ';'.join(list(set(xx.split(';')))) for xx in df_res['ep_agg']]
+        # df_res['entity_agg'] = [';'.join(list(set(xx.split(';')))) for xx in df_res['entity_agg']]
+        # df_res['entity_cnt'] = [len(xx.split(';')) for xx in df_res['entity_agg']]
+        # df_res=df_res[df_res['duble']>1]
 
 
-        self.save_large_dataframe_to_excel(df_res, f'{name_file}_дубли_точек_данных')
+        self.save_large_dataframe_to_excel(df_res, f'{name_file}_дубли_точек_данных_test')
 
 
 if __name__ == "__main__":
     ss=pointOfData()
     ss.connect_to_bd()
-    # for xx in ['ins']:
-    for xx in ['bki','brk','kra','nfo','npf','oper','srki','uk','sro','ins','purcb','bfo']:
+    for xx in ['oper']:
         with open('sql_data.sql','r') as f:
             sql=f.read()
         sql=sql.replace('HID',f"'{xx}'")
