@@ -10,7 +10,7 @@ class pointOfData():
     def print_d(self,text):
         print(f'{datetime.datetime.now()} - {text}')
 
-    def connect_to_bd(self,version="final_6_1",user="postgres",password="124kosm21",host="127.0.0.1",port="5432"):
+    def connect_to_bd(self,version="final_7",user="postgres",password="124kosm21",host="127.0.0.1",port="5432"):
         self.connect = psycopg2.connect(user=user,
                                         password=password,
                                         host=host,
@@ -71,21 +71,20 @@ class pointOfData():
         for idx,xx in enumerate(dims):
             dims[idx]=[yy.split('|') for yy in xx]
             lens=math.prod([len(yy) for yy in dims[idx]])
-            if lens==-1:
-                None
-                # i = 0
-                # for yy in self.nearest_first_product(*dims[idx]):
-                #     start = datetime.datetime.now()
-                #     yy.sort()
-                #     arr_temp=';'.join(yy)
-                #     data.append([data_df_wo_concept['rinok'][idx],data_df_wo_concept['entity'][idx],data_df_wo_concept['parentrole'][idx],arr_temp])
-                #     i+=1
-                #     finish = datetime.datetime.now()
-                #     print("", end=f"\rPercentComplete:{i+1} {round((i + 1) / lens * 100, 2)}%, time: {finish - start}")
+            if lens<10000000:
+
+                i = 0
+                for yy in self.nearest_first_product(*dims[idx]):
+                    start = datetime.datetime.now()
+                    yy.sort()
+                    arr_temp=';'.join(yy)
+                    data.append([data_df_wo_concept['rinok'][idx],data_df_wo_concept['entity'][idx],data_df_wo_concept['parentrole'][idx],arr_temp])
+                    i+=1
+                    finish = datetime.datetime.now()
+                    print("", end=f"\rPercentComplete:{i+1} {round((i + 1) / lens * 100, 2)}%, time: {finish - start}")
             else:
                 with open('skip_roles.txt','a') as f:
-                    print(lens,data_df_wo_concept['parentrole'][idx])
-                    f.write(data_df_wo_concept['parentrole'][idx]+'|'+str(lens)+'\n')
+                    f.write(data_df_wo_concept['parentrole'][idx]+'\n')
 
         columns = ['rinok','entity', 'parentrole', 'dims_n']
         df_res=pd.DataFrame(data=data,columns=columns)
@@ -97,22 +96,24 @@ class pointOfData():
                                'entity_agg': df_res.groupby(['rinok', 'dims_n', 'concept'])['entity'].aggregate(lambda x: ';'.join(list(x))),
                                'ep_agg': df_res.groupby(['rinok', 'dims_n', 'concept']).apply(self.find_common_eps)
                                }).reset_index()
+        print('\n' + 'добавил колонки')
         df_res['duble'] = [len(xx) for xx in df_res['parentrole_agg']]
+        df_res = df_res[df_res['duble'] > 1]
         df_res['parentrole_agg']=[';'.join(xx) for xx in df_res['parentrole_agg']]
-        # df_res['ep_agg'] = [ ';'.join(list(set(xx.split(';')))) for xx in df_res['ep_agg']]
+        df_res['ep_agg'] = [ ';'.join(list(set(xx.split(';')))) for xx in df_res['ep_agg']]
         df_res['entity_agg'] = [';'.join(list(set(xx.split(';')))) for xx in df_res['entity_agg']]
         df_res['entity_cnt'] = [len(xx.split(';')) for xx in df_res['entity_agg']]
-        df_res=df_res[df_res['duble']>1]
 
 
-        self.save_large_dataframe_to_excel(df_res, f'{name_file}_дубли_точек_данных_test')
+
+        self.save_large_dataframe_to_excel(df_res, f'{name_file}_дубли_точек_данных_7')
 
 
 if __name__ == "__main__":
     ss=pointOfData()
     ss.connect_to_bd()
-    # for xx in ['ins']:
-    for xx in ['bki','brk','kra','nfo','npf','oper','srki','uk','sro','ins','purcb','bfo']:
+    for xx in ['opp']:
+    # for xx in ['opp','bki','brk','kra','nfo','npf','oper','srki','uk','sro','ins','purcb','bfo']:
         with open('sql_data2.txt','r') as f:
             sql=f.read()
         sql=sql.replace('HID',f"'{xx}'")

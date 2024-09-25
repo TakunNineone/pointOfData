@@ -102,8 +102,8 @@ class pointOfData():
 if __name__ == "__main__":
     ss=pointOfData()
     ss.connect_to_bd()
-    for xx in ['bki']:
-        with open('sql_data.sql','r') as f:
+    for xx in ['ins']:
+        with open('sql_data2.txt','r') as f:
             sql=f.read()
         sql=sql.replace('HID',f"'{xx}'")
         ss.get_points(sql)

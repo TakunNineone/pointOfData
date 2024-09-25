@@ -72,7 +72,6 @@ class pointOfData():
             dims[idx]=[yy.split('|') for yy in xx]
             lens=math.prod([len(yy) for yy in dims[idx]])
             if lens<10000000:
-
                 i = 0
                 for yy in self.nearest_first_product(*dims[idx]):
                     start = datetime.datetime.now()
@@ -83,6 +82,7 @@ class pointOfData():
                     finish = datetime.datetime.now()
                     print("", end=f"\rPercentComplete:{i+1} {round((i + 1) / lens * 100, 2)}%, time: {finish - start}")
             else:
+                None
                 with open('skip_roles.txt','a') as f:
                     f.write(data_df_wo_concept['parentrole'][idx]+'\n')
 
@@ -95,6 +95,7 @@ class pointOfData():
         df_res=df_res.groupby(['rinok','dims_n','concept']).agg({'parentrole': lambda x: list(x)}).reset_index()
         df_res['duble'] = [len(xx) for xx in df_res['parentrole']]
         df_res = df_res[df_res['duble'] > 1]
+        print('\n'+'убрал дубли')
         # df_res=pd.DataFrame({'parentrole_agg': df_res.groupby(['rinok','dims_n','concept'])['parentrole'].aggregate(lambda x: list(x))})
 
         df_res = pd.DataFrame({'entity_agg': df_res.groupby(['rinok', 'dims_n', 'concept'])['entity'].aggregate(lambda x: ';'.join(list(x)))
@@ -106,7 +107,7 @@ class pointOfData():
         # # df_res['ep_agg'] = [ ';'.join(list(set(xx.split(';')))) for xx in df_res['ep_agg']]
         # df_res['entity_agg'] = [';'.join(list(set(xx.split(';')))) for xx in df_res['entity_agg']]
         # df_res['entity_cnt'] = [len(xx.split(';')) for xx in df_res['entity_agg']]
-        # df_res=df_res[df_res['duble']>1]
+        df_res=df_res[df_res['duble']>1]
 
 
         self.save_large_dataframe_to_excel(df_res, f'{name_file}_дубли_точек_данных_test')
@@ -115,8 +116,9 @@ class pointOfData():
 if __name__ == "__main__":
     ss=pointOfData()
     ss.connect_to_bd()
-    for xx in ['oper']:
-        with open('sql_data.sql','r') as f:
+    for xx in ['ins']:
+    # for xx in ['bki','brk','kra','nfo','npf','oper','srki','uk','sro','ins','purcb','bfo']:
+        with open('sql_data2.txt','r') as f:
             sql=f.read()
         sql=sql.replace('HID',f"'{xx}'")
         ss.get_points(sql,xx)

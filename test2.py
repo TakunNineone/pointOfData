@@ -10,7 +10,7 @@ class pointOfData():
     def print_d(self,text):
         print(f'{datetime.datetime.now()} - {text}')
 
-    def connect_to_bd(self,version="final_6_0",user="postgres",password="124kosm21",host="127.0.0.1",port="5432"):
+    def connect_to_bd(self,version="final_6_1",user="postgres",password="124kosm21",host="127.0.0.1",port="5432"):
         self.connect = psycopg2.connect(user=user,
                                         password=password,
                                         host=host,
@@ -98,7 +98,7 @@ class pointOfData():
                                }).reset_index()
         df_res['duble'] = [len(xx) for xx in df_res['parentrole_agg']]
         df_res['parentrole_agg']=[';'.join(xx) for xx in df_res['parentrole_agg']]
-        # df_res['ep_agg'] = [ ';'.join(list(set(xx.split(';')))) for xx in df_res['ep_agg']]
+        df_res['ep_agg'] = [ ';'.join(list(set(xx.split(';')))) for xx in df_res['ep_agg']]
         df_res['entity_agg'] = [';'.join(list(set(xx.split(';')))) for xx in df_res['entity_agg']]
         df_res['entity_cnt'] = [len(xx.split(';')) for xx in df_res['entity_agg']]
         df_res=df_res[df_res['duble']>1]
@@ -110,9 +110,9 @@ class pointOfData():
 if __name__ == "__main__":
     ss=pointOfData()
     ss.connect_to_bd()
-    # for xx in ['ins']:
-    for xx in ['bki','brk','kra','nfo','npf','oper','srki','uk','sro','ins','purcb','bfo']:
-        with open('sql_data.sql','r') as f:
+    for xx in ['ins']:
+    # for xx in ['bki','brk','kra','nfo','npf','oper','srki','uk','sro','ins','purcb','bfo']:
+        with open('sql_data2.txt','r') as f:
             sql=f.read()
         sql=sql.replace('HID',f"'{xx}'")
         ss.get_points(sql,xx)
